@@ -1,0 +1,1 @@
+{"framework":null,"buildCommand":"","outputDirectory":"public","headers":[{"source":"/(.*)","headers":[{"key":"Permissions-Policy","value":"accelerometer=(self), gyroscope=(self), screen-wake-lock=(self)"},{"key":"Cache-Control","value":"no-cache"}]}]}
