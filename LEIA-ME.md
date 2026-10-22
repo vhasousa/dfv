@@ -1,3 +1,7 @@
+# Versão Redis otimizada
+
+Esta pasta mantém o Upstash Redis. Consulte OTIMIZACOES-REDIS.md para publicar a atualização e entender o consumo. A versão Supabase permanece separada.
+
 # Sensor com dashboard no computador — Vercel
 
 ## Atualizar o projeto que já funcionou
@@ -44,7 +48,7 @@ Não é necessário estar na mesma rede: o celular pode usar 4G/5G. Use um celul
 
 ## Sem internet
 
-O celular mantém as leituras em IndexedDB, mesmo com o painel ativado. A cada 3 s tenta enviar até 3 lotes de 200 registros. Ao retornar a conexão, envia a fila pendente com IDs estáveis. O servidor insere cada ID uma única vez, em uma operação Redis atômica, e mantém o primeiro horário de recebimento. O computador consulta novos registros por sequência, sem duplicar o histórico.
+O celular mantém as leituras em IndexedDB, mesmo com o painel ativado. A cada 5 s tenta enviar até 3 lotes de 200 registros. Ao retornar a conexão, envia a fila pendente com IDs estáveis. O servidor insere cada ID uma única vez, em uma operação Lua com comandos Redis agrupados, e mantém o primeiro horário de recebimento. O computador consulta novos registros por sequência, sem duplicar o histórico: cerca de 5 s com dados recentes e 30 s ocioso. As consultas ficam suspensas quando a aba está oculta. Em falhas, as tentativas recuam de 30 s até 5 min.
 
 Sem internet no celular, o computador não recebe novas leituras. Com internet apenas no celular, o dashboard recupera o histórico quando for reaberto/conectado. Não feche ou limpe os dados do celular antes de sincronizar. Reabrir a página exige internet. A janela de gravação local é aproximadamente 1 s; fechamento abrupto pode perder o pequeno lote ainda em memória.
 
@@ -75,6 +79,6 @@ Sensibilidade S=0..100: limiares de resultante 7−0,05S m/s² E variação veto
 
     node --test tests/*.test.mjs
 
-Cinco testes passaram: sensor/calibração/sessão/gravação/retomada, envio e reenvio após falha de rede; regras de detecção; autorização separada, idempotência e cursor da API; configuração ausente; dashboard com 600 registros em duas páginas e consultas sem duplicação.
+Doze testes passaram, incluindo execução do Lua real em interpretador de teste, comparação do número de comandos, compatibilidade com chaves antigas, fila offline, autorização, paginação e intervalos de novas tentativas. Para executar: npm ci e npm test. Redis e sensores são simulados nos testes; não há consumo da sua cota nessa validação.
 
 Os testes usam navegador/sensores e Redis simulados somente no ambiente de teste. Não há modo de demonstração na aplicação. Não houve validação desta integração com um Redis real nem deployment na sua conta Vercel nesta execução. O teste físico da versão anterior foi confirmado por você; esta extensão precisa do banco conectado e Redeploy para ser testada entre os dispositivos.
